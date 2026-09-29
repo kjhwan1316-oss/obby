@@ -18,10 +18,15 @@ function makeStage(id: number): Stage {
   const d = Math.min(1, (id - 1) / 99), count = 8 + Math.floor(id / 9)
   const platforms: Platform[] = [{ x: 0, y: 430, w: 250, h: 28, kind: 'normal' }]
   const hazards: Hazard[] = []
-  let x = 220, y = 390
+  let x = 220, y = 430
   for (let i = 1; i < count; i++) {
     const gap = 46 + ((id * 17 + i * 29) % Math.floor(76 + d * 62)); x += gap
-    y = 340 - ((id * 13 + i * 31) % Math.floor(130 + d * 95))
+    // Jump apex is about 120px above a platform. Keep every next platform
+    // within a conservative 78px rise so the route remains reachable.
+    const desiredY = 340 - ((id * 13 + i * 31) % Math.floor(130 + d * 95))
+    const maxRise = 78
+    const minY = y - maxRise
+    y = Math.max(desiredY, minY)
     const width = Math.max(48, 108 - Math.floor(d * 43) - ((id + i) % 3) * 7), roll = (id * 7 + i * 11) % 100
     const kind: Platform['kind'] = id < 15 ? 'normal' : roll < 18 + d * 18 ? 'moving' : roll < 35 + d * 16 ? 'vanish' : roll < 48 + d * 15 ? 'bounce' : roll < 62 + d * 12 ? 'ice' : 'normal'
     platforms.push({ x, y, w: width, h: 20, kind })
@@ -34,8 +39,8 @@ function makeStage(id: number): Stage {
 
 function resize() { canvas.width = Math.floor(innerWidth * devicePixelRatio); canvas.height = Math.floor(innerHeight * devicePixelRatio); canvas.style.width = `${innerWidth}px`; canvas.style.height = `${innerHeight}px`; ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0) }
 addEventListener('resize', resize); resize()
-function resetStage() { player.x = 70; player.y = 360; player.vx = 0; player.vy = 0; player.grounded = false; cameraX = 0; elapsed = 0; updateHud(); draw() }
-function startStage(i = stageIndex) { stageIndex = Math.max(0, Math.min(99, i)); checkpoint = { x: 70, y: 360 }; playing = true; deaths = 0; document.querySelector('#start')?.remove(); resetStage(); last = performance.now(); requestAnimationFrame(loop) }
+function resetStage() { player.x = 70; player.y = 400; player.vx = 0; player.vy = 0; player.grounded = false; cameraX = 0; elapsed = 0; updateHud(); draw() }
+function startStage(i = stageIndex) { stageIndex = Math.max(0, Math.min(99, i)); checkpoint = { x: 70, y: 400 }; playing = true; deaths = 0; document.querySelector('#start')?.remove(); resetStage(); last = performance.now(); requestAnimationFrame(loop) }
 function die() { deaths++; resetStage(); pulse('다시 도전!') }
 function finish() { playing = false; const next = Math.min(99, stageIndex + 1); if (next > Number(localStorage.getItem('jump100-stage') ?? 0)) localStorage.setItem('jump100-stage', String(next)); showStart(true) }
 function pulse(text: string) { const el = document.querySelector('#pulse'); if (el) { el.textContent = text; el.classList.remove('show'); void el.clientWidth; el.classList.add('show') } }
