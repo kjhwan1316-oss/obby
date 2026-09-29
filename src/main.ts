@@ -13,6 +13,11 @@ let deaths = 0, playing = false, last = 0, cameraX = 0, elapsed = 0
 let checkpoint = { x: 70, y: 360 }
 const keys = new Set<string>()
 const player = { x: 70, y: 350, w: 24, h: 30, vx: 0, vy: 0, grounded: false }
+const PLAYER_MAX_SPEED = 260
+const JUMP_SPEED = 590
+const GRAVITY = 1450
+const JUMP_AIR_TIME = (JUMP_SPEED * 2) / GRAVITY
+const SAFE_JUMP_DISTANCE = Math.floor(PLAYER_MAX_SPEED * JUMP_AIR_TIME * 0.72)
 
 function makeStage(id: number): Stage {
   const d = Math.min(1, (id - 1) / 99), count = 8 + Math.floor(id / 9)
@@ -23,7 +28,9 @@ function makeStage(id: number): Stage {
     // Place gaps from the previous platform's right edge, not from its origin.
     // Two consecutive gaps plus the middle platform are longer than one jump,
     // so a player cannot skip the intended intermediate platform.
-    const gap = 92 + ((id * 17 + i * 29) % Math.floor(36 + d * 50)); x += previousWidth + gap
+    const minGap = 68
+    const maxGap = Math.max(minGap, SAFE_JUMP_DISTANCE - 18 - Math.floor(d * 12))
+    const gap = minGap + ((id * 17 + i * 29) % Math.max(1, maxGap - minGap + 1)); x += previousWidth + gap
     // Jump apex is about 120px above a platform. Keep every next platform
     // within a conservative 78px rise so the route remains reachable.
     const desiredY = 340 - ((id * 13 + i * 31) % Math.floor(130 + d * 95))
@@ -50,9 +57,9 @@ function pulse(text: string) { const el = document.querySelector('#pulse'); if (
 function loop(now: number) { if (!playing) return; const dt = Math.min(0.032, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(loop) }
 function update(dt: number) {
   const s = stages[stageIndex], left = keys.has('ArrowLeft') || keys.has('a'), right = keys.has('ArrowRight') || keys.has('d'), jump = keys.has(' ') || keys.has('ArrowUp') || keys.has('w')
-  player.vx += ((right ? 1 : 0) - (left ? 1 : 0)) * 1250 * dt; player.vx *= Math.pow(0.0008, dt); player.vx = Math.max(-260, Math.min(260, player.vx))
-  if (jump && player.grounded) { player.vy = -590; player.grounded = false }
-  player.vy += 1450 * dt; const oldY = player.y; player.x += player.vx * dt; player.y += player.vy * dt; player.grounded = false
+  player.vx += ((right ? 1 : 0) - (left ? 1 : 0)) * 1250 * dt; player.vx *= Math.pow(0.0008, dt); player.vx = Math.max(-PLAYER_MAX_SPEED, Math.min(PLAYER_MAX_SPEED, player.vx))
+  if (jump && player.grounded) { player.vy = -JUMP_SPEED; player.grounded = false }
+  player.vy += GRAVITY * dt; const oldY = player.y; player.x += player.vx * dt; player.y += player.vy * dt; player.grounded = false
   for (const p of s.platforms) { const px = p.x + (p.kind === 'moving' ? Math.sin(elapsed * 2 + p.x) * 32 : 0); const visible = p.kind !== 'vanish' || Math.sin(elapsed * 3 + p.x * 0.01) > -0.45; if (visible && player.vy >= 0 && oldY + player.h <= p.y + 4 && player.y + player.h >= p.y && player.x + player.w > px && player.x < px + p.w) { player.y = p.y - player.h; player.vy = p.kind === 'bounce' ? -850 : 0; player.grounded = true } }
   for (const h of s.hazards) { const active = h.kind !== 'laser' || Math.sin(elapsed * 4) > -0.2; if (active && hit(player, h)) return die() }
   elapsed += dt; if (player.y > 620 || elapsed > s.time) return die(); if (player.x > checkpoint.x + 250) checkpoint = { x: player.x, y: Math.min(player.y, 360) }
