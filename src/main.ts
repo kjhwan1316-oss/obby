@@ -9,6 +9,11 @@ type Stage = { id: number; difficulty: string; platforms: Platform[]; hazards: H
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!
 const ctx = canvas.getContext('2d')!
 const ui = document.querySelector<HTMLDivElement>('#ui')!
+const PLAYER_MAX_SPEED = 260
+const JUMP_SPEED = 590
+const GRAVITY = 1450
+const JUMP_AIR_TIME = (JUMP_SPEED * 2) / GRAVITY
+const SAFE_JUMP_DISTANCE = Math.floor(PLAYER_MAX_SPEED * JUMP_AIR_TIME * 0.72)
 const stages: Stage[] = Array.from({ length: 100 }, (_, i) => makeStage(i + 1))
 let stageIndex = Number(localStorage.getItem('jump100-stage') ?? 0)
 let deaths = 0, playing = false, last = 0, cameraX = 0, elapsed = 0
@@ -16,12 +21,6 @@ let checkpoint = { x: 70, y: 360 }
 let speedBoostUntil = 0, shieldCharges = 0, empoweredJump = false, interactLatch = false
 const keys = new Set<string>()
 const player = { x: 70, y: 350, w: 24, h: 30, vx: 0, vy: 0, grounded: false }
-const PLAYER_MAX_SPEED = 260
-const JUMP_SPEED = 590
-const GRAVITY = 1450
-const JUMP_AIR_TIME = (JUMP_SPEED * 2) / GRAVITY
-const SAFE_JUMP_DISTANCE = Math.floor(PLAYER_MAX_SPEED * JUMP_AIR_TIME * 0.72)
-
 function makeStage(id: number): Stage {
   const d = Math.min(1, (id - 1) / 99), count = 8 + Math.floor(id / 9)
   const platforms: Platform[] = [{ x: 0, y: 430, w: 250, h: 28, kind: 'normal' }]
