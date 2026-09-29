@@ -18,9 +18,12 @@ function makeStage(id: number): Stage {
   const d = Math.min(1, (id - 1) / 99), count = 8 + Math.floor(id / 9)
   const platforms: Platform[] = [{ x: 0, y: 430, w: 250, h: 28, kind: 'normal' }]
   const hazards: Hazard[] = []
-  let x = 220, y = 430
+  let x = 0, y = 430, previousWidth = 250
   for (let i = 1; i < count; i++) {
-    const gap = 46 + ((id * 17 + i * 29) % Math.floor(76 + d * 62)); x += gap
+    // Place gaps from the previous platform's right edge, not from its origin.
+    // Two consecutive gaps plus the middle platform are longer than one jump,
+    // so a player cannot skip the intended intermediate platform.
+    const gap = 92 + ((id * 17 + i * 29) % Math.floor(36 + d * 50)); x += previousWidth + gap
     // Jump apex is about 120px above a platform. Keep every next platform
     // within a conservative 78px rise so the route remains reachable.
     const desiredY = 340 - ((id * 13 + i * 31) % Math.floor(130 + d * 95))
@@ -29,7 +32,7 @@ function makeStage(id: number): Stage {
     y = Math.max(desiredY, minY)
     const width = Math.max(48, 108 - Math.floor(d * 43) - ((id + i) % 3) * 7), roll = (id * 7 + i * 11) % 100
     const kind: Platform['kind'] = id < 15 ? 'normal' : roll < 18 + d * 18 ? 'moving' : roll < 35 + d * 16 ? 'vanish' : roll < 48 + d * 15 ? 'bounce' : roll < 62 + d * 12 ? 'ice' : 'normal'
-    platforms.push({ x, y, w: width, h: 20, kind })
+    platforms.push({ x, y, w: width, h: 20, kind }); previousWidth = width
     if (id >= 12 && (i + id) % 3 === 0) hazards.push({ x: x - gap * 0.55, y: 420, w: Math.min(70, gap * 0.65), h: 12, kind: id >= 65 && i % 2 === 0 ? 'laser' : id >= 35 && i % 3 === 0 ? 'saw' : 'lava' })
     if (id >= 55 && i % 4 === 0) hazards.push({ x: x + width * 0.35, y: y - 74, w: 8, h: 74, kind: 'laser' })
   }
