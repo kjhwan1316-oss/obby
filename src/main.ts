@@ -53,7 +53,7 @@ function makeStage(id: number): Stage {
     y = Math.max(desiredY, minY)
     const kind: Platform['kind'] = id < 10 ? 'normal' : id < 20 ? 'moving' : id < 30 ? 'vanish' : id < 40 ? 'bounce' : id < 50 ? 'ice' : roll < 18 + d * 18 ? 'moving' : roll < 35 + d * 16 ? 'vanish' : roll < 48 + d * 15 ? 'bounce' : roll < 62 + d * 12 ? 'ice' : 'normal'
     platforms.push({ x, y, w: width, h: 20, kind }); previousWidth = width
-    if (id >= 35 && (i + id) % 3 === 0) hazards.push({ x: x - gap * 0.55, y: 420, w: Math.min(70, gap * 0.65), h: 12, kind: id >= 65 && i % 2 === 0 ? 'laser' : 'saw' })
+    if (id >= 10 && (i + id) % 3 === 0) hazards.push({ x: x - gap * 0.55, y: 420, w: Math.min(70, gap * 0.65), h: 12, kind: id >= 65 && i % 2 === 0 ? 'laser' : id >= 35 && i % 3 === 0 ? 'saw' : 'lava' })
     if (id >= 48 && (i + id) % 4 === 0) hazards.push({ x: x + width * 0.28, y: y - 18, w: Math.min(42, width * 0.46), h: 18, kind: 'spike' })
     if (id >= 55 && i % 4 === 0) hazards.push({ x: x + width * 0.35, y: y - 74, w: 8, h: 74, kind: 'laser' })
     if (id >= 25 && (i + id) % 5 === 0) items.push({ x: x + width * .5, y: y - 32, kind: (i + id) % 3 === 0 ? 'shield' : (i + id) % 3 === 1 ? 'boost' : 'jump', used: false })
