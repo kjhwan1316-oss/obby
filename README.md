@@ -1,59 +1,116 @@
-# game-3d starter (three.js + Rapier)
+# Jump 100
 
-A complete, small 3D game — **Sky Cores**: run, jump and dash across floating islands to collect
-every energy core before the clock runs out, avoiding patrol drones. It exists to be *changed*:
-the engine layer is fixed scaffolding, the game layer is the part you rewrite.
+브라우저에서 플레이하는 2D 점프맵 게임입니다. 총 100개의 스테이지를 진행하며, 뒤로 갈수록 새로운 기믹과 난이도가 추가됩니다.
+
+## 실행
 
 ```bash
 pnpm install
-pnpm dev      # http://localhost:5173
-pnpm build    # typecheck + production build + bundle budget
-pnpm test     # unit tests (rules, save, i18n, level)
-pnpm smoke    # after build: headless browser playthrough + screenshots in shots/
+pnpm dev --host 0.0.0.0 --port 3000
 ```
 
-## Layout
+## 지금까지 구현한 기능
 
-| Path | Role | Change it? |
-| --- | --- | --- |
-| `src/engine/loop.ts` | Fixed 60 Hz simulation + interpolated rendering | Rarely |
-| `src/engine/input.ts` | Keyboard/mouse, gamepad, touch → one action state | Add actions here |
-| `src/engine/physics.ts` | Rapier world, collider helpers, render interpolation | Rarely |
-| `src/engine/renderer.ts` | WebGL renderer, quality presets, bloom | Rarely |
-| `src/engine/audio.ts` | Music/SFX buses, synthesized SFX, `load()` for files | Add sounds |
-| `src/engine/save.ts` | Versioned localStorage save + leaderboard | Add fields + parsing |
-| `src/engine/i18n.ts` | en / zh-CN, browser detection, saved choice wins | Rarely |
-| `src/engine/assets.ts` | Cached GLTF/texture loading with progress | Use it for models |
-| `src/game/config.ts` | **All tuning numbers** | Yes |
-| `src/game/rules.ts` | Pure score/lives/clock/win rules (unit tested) | Yes |
-| `src/game/world.ts` | Level layout, sky, lights, islands, stones, lifts | Yes |
-| `src/game/player.ts` | Character controller + game feel + procedural model | Yes |
-| `src/game/*.ts` | Camera, cores, drones, particles, scene orchestration | Yes |
-| `src/ui/`, `src/styles/main.css` | HTML/CSS title, HUD, pause, settings, results | Yes |
-| `src/i18n/*.json` | All player-facing text (both files, same keys) | Yes |
+- 100개 스테이지 데이터 기반 생성
+- 플레이어 이동, 점프, 낙사 및 시작 위치 복귀
+- 플레이어 이동속도와 점프 물리를 반영한 도달 가능한 발판 배치
+- 중간 발판을 건너뛰기 어렵도록 순차적인 발판 간격 설계
+- 10개 스테이지 단위의 대표 기믹
+  - 움직이는 발판
+  - 사라지는 발판
+  - 점프 패드
+  - 얼음 발판
+  - 가시 지대
+  - 레이저 타이밍
+  - 워프 포탈
+  - 바람 구간
+  - 중력 구간
+  - 올인원 챌린지
+- 후반 특수 기믹: 움직이는 발판, 가시, 레이저, 포탈
+- 직접 상호작용해야 사용하는 일회성 아이템
+  - 스피드 부스터
+  - 보호막
+  - 점프 코어
+- 기믹이 처음 등장하는 10단위 스테이지의 그림 튜토리얼
+- `Space` 키를 통한 다음 스테이지 이동
+- 이동·점프 시 몸통 중심의 캐릭터 모션
+- 팔다리 없는 심플한 캐릭터 디자인
+- 새 메뉴형 초기 화면
+- 게임 중 `ESC` 일시정지
+  - 계속하기
+  - 스테이지 재시작
+- 창작마당
+  - 격자 기반 맵 편집
+  - 여러 기믹 배치
+  - 테스트 플레이
+  - 직접 클리어한 맵만 게시
+  - 게시 맵 목록의 로컬 저장
+- Canvas 그래픽과 반응형 UI
+- 로그인, 결제, 외부 게임 에셋 없이 동작
 
-## Rules for changes
+## 조작법
 
-- **Simulation in `step()`, visuals in `render()`/`animate()`.** Gameplay state only changes in
-  fixed steps; read presses there with `input.consume(action)`, never `pressed()`.
-- **Rules stay pure.** Scoring, win/lose and progression go in `rules.ts` with tests; scene code
-  reports events and reads state.
-- **Every visible string is an i18n key** in both `en.json` and `zh-CN.json` (a test enforces
-  matching keys and placeholders). Chinese glyphs come from the subset font in `public/fonts/`;
-  if you add new Chinese text, check it renders (missing glyphs fall back to system fonts).
-- **UI is HTML/CSS**, not canvas. Keep the game look: display font, outlined text, hard offset
-  shadows, skewed buttons, notched panels. Menus must stay keyboard/gamepad navigable
-  (`data-nav` on focusable controls).
-- **Colliders come from the helpers** in `physics.ts` with the same sizes as the meshes.
-- Keep `npm run build` within budget (`scripts/check-size.mjs`) and `npm run smoke` green.
+| 키 | 기능 |
+| --- | --- |
+| `A` / `D` 또는 방향키 | 이동 |
+| `Space` | 점프 / 클리어 후 다음 스테이지 |
+| `E` | 근처 일회성 아이템 사용 |
+| `ESC` | 일시정지 / 재개 |
+| `R` | 현재 스테이지 재시작 |
 
-## Controls
+## 창작마당 사용법
 
-Keyboard/mouse: WASD move, mouse look (click to capture), Space jump (hold = higher), Shift
-sprint, F or left click dash, Esc pause. Gamepad: left stick, right stick, A jump, X/RB dash,
-LB sprint, Start pause. Touch: left-side stick, right-side drag to look, JUMP / DASH buttons.
+1. 초기 화면에서 **창작마당 만들기**를 선택합니다.
+2. 오른쪽 기믹 팔레트에서 기믹을 선택합니다.
+3. 격자 칸을 클릭해 발판과 장애물을 배치합니다.
+4. **테스트 플레이**를 눌러 맵을 직접 클리어합니다.
+5. 클리어 후 맵 이름을 입력하고 게시합니다.
 
-## Credits
+현재 창작마당 게시 목록은 서버 없이 브라우저 `localStorage`에 저장됩니다. 따라서 같은 브라우저에서는 유지되지만 다른 사용자의 게임과 공유되지는 않습니다.
 
-Fonts: Sora, Figtree, Noto Sans SC — SIL Open Font License 1.1 (see `public/fonts/*-OFL.txt`).
-Libraries: three.js (MIT), Rapier (Apache-2.0).
+## 향후 개발 계획
+
+### 1. 온라인 창작마당
+
+- 사용자 계정과 맵 작성자 표시
+- 서버 저장 및 다른 플레이어 맵 검색
+- 맵 공유 링크와 공개/비공개 설정
+- 좋아요, 플레이 수, 추천 맵 정렬
+
+### 2. 창작 도구 확장
+
+- 더 넓은 맵과 카메라 이동 편집
+- 드래그 앤 드롭 배치
+- 포탈 연결 지점 설정
+- 바람·중력 영역 편집
+- 체크포인트 배치
+- 맵 미리보기와 난이도 자동 분석
+
+### 3. 플레이 경험 개선
+
+- 사운드 효과와 배경 음악
+- 모바일 가상 조작 버튼
+- 리플레이 및 최고 기록
+- 스테이지별 별점과 도전 과제
+- 접근성 설정과 색상 테마
+
+### 4. 품질 및 운영
+
+- 창작맵 유효성 검사 강화
+- 도달 불가능한 구간 자동 경고
+- 저장 데이터 내보내기/가져오기
+- 온라인 맵 신고 및 관리 기능
+- 더 많은 자동화 테스트와 성능 최적화
+
+## 개발 검증
+
+```bash
+pnpm build
+pnpm test
+```
+
+현재 테스트는 26개이며, TypeScript 검사·Vite 번들 검사·기존 게임 규칙 테스트를 포함합니다.
+
+## 미리보기
+
+[Jump 100 미리보기](https://3000-i4w3spa5ecacywtfjrim1-2eaa3a10.sg2.manus.computer/)
