@@ -31,8 +31,13 @@ function makeStage(id: number): Stage {
     // Place gaps from the previous platform's right edge, not from its origin.
     // Two consecutive gaps plus the middle platform are longer than one jump,
     // so a player cannot skip the intended intermediate platform.
-    const minGap = 68
-    const maxGap = Math.max(minGap, SAFE_JUMP_DISTANCE - 18 - Math.floor(d * 12))
+    const minGap = 58
+    const width = Math.max(48, 108 - Math.floor(d * 43) - ((id + i) % 3) * 7), roll = (id * 7 + i * 11) % 100
+    const isMoving = id >= 15 && roll < 18 + d * 18
+    // Use a conservative real-flight margin. Moving platforms can shift by 32px,
+    // so routes leading to them get an additional reachability allowance.
+    const physicsCap = SAFE_JUMP_DISTANCE - 38 - Math.floor(d * 8)
+    const maxGap = Math.max(minGap, Math.min(114 - (isMoving ? 26 : 0), physicsCap))
     const gap = minGap + ((id * 17 + i * 29) % Math.max(1, maxGap - minGap + 1)); x += previousWidth + gap
     // Jump apex is about 120px above a platform. Keep every next platform
     // within a conservative 78px rise so the route remains reachable.
@@ -40,7 +45,6 @@ function makeStage(id: number): Stage {
     const maxRise = 78
     const minY = y - maxRise
     y = Math.max(desiredY, minY)
-    const width = Math.max(48, 108 - Math.floor(d * 43) - ((id + i) % 3) * 7), roll = (id * 7 + i * 11) % 100
     const kind: Platform['kind'] = id < 15 ? 'normal' : roll < 18 + d * 18 ? 'moving' : roll < 35 + d * 16 ? 'vanish' : roll < 48 + d * 15 ? 'bounce' : roll < 62 + d * 12 ? 'ice' : 'normal'
     platforms.push({ x, y, w: width, h: 20, kind }); previousWidth = width
     if (id >= 12 && (i + id) % 3 === 0) hazards.push({ x: x - gap * 0.55, y: 420, w: Math.min(70, gap * 0.65), h: 12, kind: id >= 65 && i % 2 === 0 ? 'laser' : id >= 35 && i % 3 === 0 ? 'saw' : 'lava' })
