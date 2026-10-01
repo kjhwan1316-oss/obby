@@ -56,8 +56,9 @@ function makeStage(id: number): Stage {
     const kind: Platform['kind'] = id >= 10 && ((i + id) % 3 === 0 || roll > 72) ? 'normal' : gimmickKind
     const lavaRoute = id >= 10 && (i + id) % 3 === 0 && id < 35
     const platformWidth = kind === 'normal' && lavaRoute ? Math.min(150, width + 24) : width
-    platforms.push({ x, y, w: platformWidth, h: 20, kind }); previousWidth = platformWidth
-    if (id >= 10 && (i + id) % 3 === 0) { const hazardKind: Hazard['kind'] = id >= 65 && i % 2 === 0 ? 'laser' : id >= 35 && i % 3 === 0 ? 'saw' : 'lava'; hazards.push({ x: hazardKind === 'lava' ? x + platformWidth * 0.2 : x - gap * 0.55, y: hazardKind === 'lava' ? y - 7 : 420, w: hazardKind === 'lava' ? Math.min(54, platformWidth * 0.58) : Math.min(70, gap * 0.65), h: hazardKind === 'lava' ? 7 : 12, kind: hazardKind }) }
+    const platformX = lavaRoute && kind === 'normal' ? x - (platformWidth - width) / 2 : x
+    platforms.push({ x: platformX, y, w: platformWidth, h: 20, kind }); previousWidth = platformWidth
+    if (id >= 10 && (i + id) % 3 === 0) { const hazardKind: Hazard['kind'] = id >= 65 && i % 2 === 0 ? 'laser' : id >= 35 && i % 3 === 0 ? 'saw' : 'lava'; hazards.push({ x: hazardKind === 'lava' ? platformX + platformWidth * 0.2 : x - gap * 0.55, y: hazardKind === 'lava' ? y - 7 : 420, w: hazardKind === 'lava' ? Math.min(54, platformWidth * 0.58) : Math.min(70, gap * 0.65), h: hazardKind === 'lava' ? 7 : 12, kind: hazardKind }) }
     if (id >= 48 && (i + id) % 4 === 0) hazards.push({ x: x + width * 0.28, y: y - 18, w: Math.min(42, width * 0.46), h: 18, kind: 'spike' })
     if (id >= 55 && i % 4 === 0) hazards.push({ x: x + width * 0.35, y: y - 74, w: 8, h: 74, kind: 'laser' })
     if (id >= 25 && (i + id) % 5 === 0) items.push({ x: x + width * .5, y: y - 32, kind: (i + id) % 3 === 0 ? 'shield' : (i + id) % 3 === 1 ? 'boost' : 'jump', used: false })
